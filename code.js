@@ -8,7 +8,31 @@ function exportToCSSVariables() {
         cssVariables += processCollectionToCSSVariables(collection);
     });
 
-    figma.ui.postMessage({ type: "EXPORT_RESULT", cssVariables });
+    const globalStyle = `
+import { createGlobalStyle } from 'styled-components';
+
+export const GlobalStyle = createGlobalStyle\`
+    * {
+        box-sizing: border-box;
+    }
+
+    html, body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        line-height: 1.5;
+        -webkit-text-size-adjust: 100%;
+        tab-size: 4;
+        font-feature-settings: normal;
+    }
+
+    :root {
+${addIndentation(cssVariables, 8)}
+    }
+\`;
+    `;
+
+    figma.ui.postMessage({ type: "EXPORT_RESULT", globalStyle });
 }
 
 function processCollectionToCSSVariables({ modes, variableIds }) {
@@ -44,7 +68,7 @@ figma.ui.onmessage = (e) => {
 };
 
 figma.showUI(__uiFiles__["export"], {
-    width: 500,
+    width: 768,
     height: 500,
     themeColors: true,
 });
@@ -62,4 +86,11 @@ function rgbToHex({ r, g, b, a }) {
 
     const hex = [toHex(r), toHex(g), toHex(b)].join("");
     return `#${hex}`;
+}
+
+function addIndentation(text, spaces) {
+    return text
+        .split('\n')
+        .map((line) => line.padStart(line.length + spaces, ' '))
+        .join('\n');
 }

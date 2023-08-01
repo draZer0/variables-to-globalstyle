@@ -42,6 +42,7 @@
         overflow: auto;
         padding: var(--spacing);
         white-space: pre;
+        resize: none;
     }
     textarea:focus {
         border-color: var(--figma-color-border-selected);
@@ -78,7 +79,7 @@
 <script>
     window.onmessage = ({ data: { pluginMessage } }) => {
         if (pluginMessage.type === "EXPORT_RESULT") {
-            document.querySelector("textarea").innerHTML = `/* CSS Variables */\n\n${pluginMessage.cssVariables}`;
+            document.querySelector("textarea").innerHTML = `/* globalStyle.jsx */\n${pluginMessage.globalStyle}`;
         }
     };
     document.getElementById("export").addEventListener("click", () => {
