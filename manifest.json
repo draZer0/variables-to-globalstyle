@@ -1,0 +1,16 @@
+{
+  "name": "variables-to-globalstyle",
+  "id": "1268132131799345111",
+  "api": "1.0.0",
+  "main": "code.js",
+  "capabilities": [],
+  "enableProposedApi": false,
+  "editorType": [
+    "figma"
+  ],
+  "networkAccess": {
+    "allowedDomains": [
+      "none"
+    ]
+  }
+}
