@@ -8,3 +8,11 @@ The plugin currently:
 
 - Supports local color variables in multiple collections including referencing primitives
 - Supports text styles, but note that the fallback of a font will always be `sans-serif` since the correct fallback is unknown
+
+
+Future enhancements / TODO:
+
+- Support more local variable types
+- Support more export possibilities
+- Support to only export the variables outside the GlobalStyle
+- Checkboxes to not export text styles for example

@@ -69,16 +69,17 @@ function processTextStylesToCSSVariables(textStyles) {
 
     textStyles.forEach((textStyle) => {
         const { name, fontName, fontSize } = textStyle;
+        
         const fontKey = `${fontName.family.toLowerCase().replace(/ /g, "-")}`;
-
         if (!fontFamilies.has(fontKey)) {
             fontFamilyStyles += `--font-${fontKey}: '${fontName.family}', sans-serif;\n`;
             fontFamilies.add(fontKey);
         }
 
-        const fontWeightKey = fontWeightToKey(fontName.style);
+        const fontWeightData = fontWeightToKeyValuePair(fontName.style);
+        const fontWeightKey = fontWeightData.key;
         if (fontWeightKey && !fontWeights.has(fontWeightKey)) {
-            fontWeightStyles += `--font-weight-${fontWeightKey}: ${fontName.style};\n`;
+            fontWeightStyles += `--font-weight-${fontWeightKey}: ${fontWeightData.value};\n`;
             fontWeights.add(fontWeightKey);
         }
 
@@ -116,22 +117,27 @@ function getValue(value, resolvedType) {
     }
 }
 
-function fontWeightToKey(fontWeight) {
+function fontWeightToKeyValuePair(fontWeight) {
     const fontWeightMap = {
         "Thin": 100,
         "ExtraLight": 200,
+        "UltraLight": 200,
         "Light": 300,
         "Regular": 400,
+        "Normal": 400,
         "Medium": 500,
         "SemiBold": 600,
+        "DemiBold": 600,
         "Bold": 700,
         "ExtraBold": 800,
+        "UltraBold": 800,
         "Black": 900,
+        "Heavy": 900,
     };
 
     const weightKey = Object.keys(fontWeightMap).find(key => key.toLowerCase() === fontWeight.toLowerCase().replace(/ /g, ""));
 
-    return weightKey ? weightKey.toLowerCase().replace(/ /g, "-") : null;
+    return weightKey ? { key: weightKey.toLowerCase().replace(/ /g, "-"), value: fontWeightMap[weightKey] } : null;
 }
 
 function rgbToHex({ r, g, b, a }) {
