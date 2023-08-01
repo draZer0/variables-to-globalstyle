@@ -7,6 +7,9 @@ function exportToCSSVariables() {
     collections.forEach((collection) => {
         cssVariables += processCollectionToCSSVariables(collection);
     });
+    
+    const textStyles = figma.getLocalTextStyles();
+    let processedTextStyles = processTextStylesToCSSVariables(textStyles);
 
     const globalStyle = `
 import { createGlobalStyle } from 'styled-components';
@@ -27,7 +30,11 @@ export const GlobalStyle = createGlobalStyle\`
     }
 
     :root {
+        // Colors
 ${addIndentation(cssVariables, 8)}
+
+        // Font 
+${addIndentation(processedTextStyles, 8)}
     }
 \`;
     `;
@@ -52,14 +59,33 @@ function processCollectionToCSSVariables({ modes, variableIds }) {
     return cssVariables;
 }
 
-function getValue(value, resolvedType) {
-    if (value.type === "VARIABLE_ALIAS") {
-        return `var(--${figma.variables.getVariableById(value.id).name.replace(/\//g, "-")})`;
-    } else if (resolvedType === "COLOR") {
-        return rgbToHex(value);
-    } else {
-        return value;
-    }
+function processTextStylesToCSSVariables(textStyles) {
+    const fontFamilies = new Set();
+    const fontWeights = new Set();
+    
+    let fontFamilyStyles = "";
+    let fontSizeStyles = "";
+    let fontWeightStyles = "";
+
+    textStyles.forEach((textStyle) => {
+        const { name, fontName, fontSize } = textStyle;
+        const fontKey = `${fontName.family.toLowerCase().replace(/ /g, "-")}`;
+
+        if (!fontFamilies.has(fontKey)) {
+            fontFamilyStyles += `--font-${fontKey}: '${fontName.family}', sans-serif;\n`;
+            fontFamilies.add(fontKey);
+        }
+
+        const fontWeightKey = fontWeightToKey(fontName.style);
+        if (fontWeightKey && !fontWeights.has(fontWeightKey)) {
+            fontWeightStyles += `--font-weight-${fontWeightKey}: ${fontName.style};\n`;
+            fontWeights.add(fontWeightKey);
+        }
+
+        fontSizeStyles += `--font-size-${name}: ${fontSize}px;\n`;
+    });
+
+    return fontFamilyStyles + fontSizeStyles + fontWeightStyles;
 }
 
 figma.ui.onmessage = (e) => {
@@ -72,6 +98,41 @@ figma.showUI(__uiFiles__["export"], {
     height: 500,
     themeColors: true,
 });
+
+function addIndentation(text, spaces) {
+    return text
+        .split('\n')
+        .map((line) => line.padStart(line.length + spaces, ' '))
+        .join('\n');
+}
+
+function getValue(value, resolvedType) {
+    if (value.type === "VARIABLE_ALIAS") {
+        return `var(--${figma.variables.getVariableById(value.id).name.replace(/\//g, "-")})`;
+    } else if (resolvedType === "COLOR") {
+        return rgbToHex(value);
+    } else {
+        return value;
+    }
+}
+
+function fontWeightToKey(fontWeight) {
+    const fontWeightMap = {
+        "Thin": 100,
+        "ExtraLight": 200,
+        "Light": 300,
+        "Regular": 400,
+        "Medium": 500,
+        "SemiBold": 600,
+        "Bold": 700,
+        "ExtraBold": 800,
+        "Black": 900,
+    };
+
+    const weightKey = Object.keys(fontWeightMap).find(key => key.toLowerCase() === fontWeight.toLowerCase().replace(/ /g, ""));
+
+    return weightKey ? weightKey.toLowerCase().replace(/ /g, "-") : null;
+}
 
 function rgbToHex({ r, g, b, a }) {
     if (a !== undefined && a !== 1) {
@@ -86,11 +147,4 @@ function rgbToHex({ r, g, b, a }) {
 
     const hex = [toHex(r), toHex(g), toHex(b)].join("");
     return `#${hex}`;
-}
-
-function addIndentation(text, spaces) {
-    return text
-        .split('\n')
-        .map((line) => line.padStart(line.length + spaces, ' '))
-        .join('\n');
 }
